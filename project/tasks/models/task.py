@@ -16,7 +16,8 @@ class Task(models.Model):
                             max_length=200)
     ip_range = models.CharField(verbose_name="Диапазон адресов",
                                 max_length=200)
-    result = models.ArrayField(model_container=TaskResult)
+    result = models.JSONField(verbose_name="Результат выполнения задачи",
+                              null=True, blank=True)
     status = models.CharField(verbose_name="Текущий статус задачи",
                               choices=Status.choices, max_length=100,
                               default=Status.CREATED)
