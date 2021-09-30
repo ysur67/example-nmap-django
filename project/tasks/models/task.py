@@ -1,4 +1,5 @@
-from django.db import models
+from djongo import models
+from .result import TaskResult
 
 
 class Status(models.TextChoices):
@@ -15,7 +16,7 @@ class Task(models.Model):
                             max_length=200)
     ip_range = models.CharField(verbose_name="Диапазон адресов",
                                 max_length=200)
-    result = models.TextField(verbose_name="Результат работы задачи")
+    result = models.ArrayField(model_container=TaskResult)
     status = models.CharField(verbose_name="Текущий статус задачи",
                               choices=Status.choices, max_length=100,
                               default=Status.CREATED)
