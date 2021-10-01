@@ -4,4 +4,4 @@ from tasks.models import Task
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    pass
+    readonly_fields = ("result", "status", )

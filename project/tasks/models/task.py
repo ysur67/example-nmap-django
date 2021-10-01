@@ -1,5 +1,6 @@
 from djongo import models
 from .result import TaskResult
+from tasks.utils import keys_to_strings
 
 
 class Status(models.TextChoices):
@@ -17,7 +18,7 @@ class Task(models.Model):
     ip_range = models.CharField(verbose_name="Диапазон адресов",
                                 max_length=200)
     result = models.JSONField(verbose_name="Результат выполнения задачи",
-                              null=True, blank=True)
+                              default={})
     status = models.CharField(verbose_name="Текущий статус задачи",
                               choices=Status.choices, max_length=100,
                               default=Status.CREATED)
@@ -37,7 +38,11 @@ class Task(models.Model):
 
     @property
     def is_running(self) -> bool:
-        self.status == Status.STARTED
+        return self.status == Status.STARTED
+
+    @property
+    def result_is_empty(self) -> bool:
+        return self.result is None or self.result == "" or self.result == {}
 
     def __str__(self) -> str:
         return self.name
@@ -64,7 +69,7 @@ class Task(models.Model):
         Raises:
             ValueError: Задача уже имеет какой-то результат выполнения
         """
-        if self.result is not None or self.result != "":
+        if not self.result_is_empty:
             raise ValueError(f"Task {self.id} has already been started")
-        self.result = new
+        self.result = keys_to_strings(new)
         self.save()

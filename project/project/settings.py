@@ -89,6 +89,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'djongo',
         'NAME': env('DATABASE_NAME'),
+        'ENFORCE_SCHEMA': False,
         'CLIENT': {
            'host': env('DATABASE_HOST'),
         }
