@@ -16,8 +16,8 @@ def run_scan_task(task_id: int):
     current_task: Task = Task.get_object_by_id(task_id)
     if current_task is None:
         return
-    if current_task.is_running:
-        raise ValueError(f"Task {task_id} is started already")
+    if current_task.is_running or current_task.is_finished:
+        raise ValueError(f"Task {task_id} is started or finished already")
     current_task.mark_as_started()
     scan_service: ScanService = NmapService(current_task.ip_range)
     # Запускаем задачу с флагом -A
