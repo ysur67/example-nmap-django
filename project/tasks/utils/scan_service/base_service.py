@@ -1,5 +1,4 @@
 from abc import abstractmethod, ABC
-from tasks.utils.mapper import Mapper
 
 
 class ScanService(ABC):
