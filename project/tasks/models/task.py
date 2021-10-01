@@ -18,10 +18,10 @@ class Task(models.Model):
     ip_range = models.CharField(verbose_name="Диапазон адресов",
                                 max_length=200)
     result = models.JSONField(verbose_name="Результат выполнения задачи",
-                              default={})
+                              default={}, blank=True)
     status = models.CharField(verbose_name="Текущий статус задачи",
                               choices=Status.choices, max_length=100,
-                              default=Status.CREATED)
+                              default=Status.CREATED, blank=True)
 
     @classmethod
     def get_object_by_id(cls, id_: int):

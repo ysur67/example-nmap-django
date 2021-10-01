@@ -3,7 +3,7 @@ from tasks.models import Task
 
 
 class TaskSerializer(serializers.ModelSerializer):
-    result = serializers.JSONField()
+    result = serializers.JSONField(required=False)
 
     class Meta:
         model = Task
