@@ -41,6 +41,10 @@ class Task(models.Model):
         return self.status == Status.STARTED
 
     @property
+    def is_finished(self) -> bool:
+        return self.status == Status.FINISHED or self.status == Status.STOPPED
+
+    @property
     def result_is_empty(self) -> bool:
         return self.result is None or self.result == "" or self.result == {}
 
@@ -72,4 +76,14 @@ class Task(models.Model):
         if not self.result_is_empty:
             raise ValueError(f"Task {self.id} has already been started")
         self.result = keys_to_strings(new)
+        self.save()
+
+    def set_name(self, new: str):
+        self.name = str(new)
+        self.save()
+
+    def set_ip_range(self, new: str):
+        if not isinstance(new, str):
+            raise TypeError("ip_range should be of type string")
+        self.ip_range = new
         self.save()
