@@ -5,6 +5,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from tasks.tasks import run_scan_task, stop_task
 from rest_framework.decorators import action
+from tasks.utils.tools import get_int_value
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -16,11 +17,11 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def list(self, request: Request, *args, **kwargs):
         request_params = request.query_params.copy()
-        range_start = self.get_int_value(request_params, "start")
+        range_start = get_int_value(request_params, "start")
         MIN_START_RANGE = 0
         if range_start < MIN_START_RANGE:
             range_start = MIN_START_RANGE
-        range_size = self.get_int_value(request_params, "length")
+        range_size = get_int_value(request_params, "length")
         qs = self.get_queryset()
         if range_start > MIN_START_RANGE:
             qs = qs[range_start - 1:]
@@ -38,7 +39,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             return response
         if not isinstance(autostart, bool):
             return response
-        current_task_id = self.get_int_value(response.data, "id")
+        current_task_id = get_int_value(response.data, "id")
         run_scan_task.delay(current_task_id)
         return response
 
@@ -104,10 +105,3 @@ class TaskViewSet(viewsets.ModelViewSet):
         # Отдаем 400 код, если что-то пошло не так
         response["message"] = "Bad request"
         return Response(response, self.BAD_REQQUEST_CODE)
-
-    def get_int_value(self, dict_, key):
-        DEFAULT_VALUE = 0
-        try:
-            return int(dict_.get(key, DEFAULT_VALUE))
-        except TypeError:
-            return DEFAULT_VALUE
