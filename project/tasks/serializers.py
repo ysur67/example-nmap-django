@@ -34,7 +34,6 @@ class TaskRunSerializer(TaskListSerializer):
     class Meta:
         model = Task
         fields = ("action", )
-        read_only_fields = ("name", )
 
     def validate(self, attrs):
         current_task: Task = self.instance
