@@ -1,19 +1,15 @@
 from tasks.models import Task
 from tasks.serializers import TaskSerializer
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 from tasks.tasks import run_scan_task, stop_task
 from rest_framework.decorators import action
 from tasks.utils.tools import get_int_value
 
-
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
     queryset = Task.objects.all()
-
-    UNPROCESSABLE_CODE = 422
-    BAD_REQUEST_CODE = 400
 
     def list(self, request: Request, *args, **kwargs):
         request_params = request.query_params.copy()
@@ -51,11 +47,11 @@ class TaskViewSet(viewsets.ModelViewSet):
         if current_task.is_running:
             response["message"] = ("At the moment task "
                                    "is running and cannot be changed")
-            return Response(response, status=self.UNPROCESSABLE_CODE)
+            return Response(response, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
         if current_task.is_finished:
             response["message"] = ("Task has already been finished "
                                    "and cannot be changed")
-            return Response(response, self.UNPROCESSABLE_CODE)
+            return Response(response, status.HTTP_422_UNPROCESSABLE_ENTITY)
         request_data = request.data.copy()
         new_ip_range = request_data.get("ip_range", None)
         new_name = request_data.get("name", None)
@@ -76,18 +72,18 @@ class TaskViewSet(viewsets.ModelViewSet):
         # Выходим, если получен неправильный параметр
         if task_action not in (ACTION_START, ACTION_STOP):
             response["message"] = "Action not known"
-            return Response(response, self.UNPROCESSABLE_CODE)
+            return Response(response, status.HTTP_422_UNPROCESSABLE_ENTITY)
         # Выходим, если задача уже выполнена
         if current_task.is_finished:
             response["message"] = "The task has already been finished"
-            return Response(response, self.UNPROCESSABLE_CODE)
+            return Response(response, status.HTTP_422_UNPROCESSABLE_ENTITY)
         # Если задача запущена, пытаемся ее остановить
         if current_task.is_running:
             # Если задачу пытаются повторно запустить - выходим
             if task_action == ACTION_START:
                 response["message"] = ("At the moment task is running "
                                    "and cannot be started again")
-                return Response(response, self.UNPROCESSABLE_CODE)
+                return Response(response, status.HTTP_422_UNPROCESSABLE_ENTITY)
             stop_task.delay(current_task.celery_id)
             response["message"] = "The task has been successfully stopped"
             return Response(response)
@@ -96,7 +92,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         if task_action == ACTION_STOP:
             response["message"] = ("The task has been already stopped "
                                    "and cannot be stopped again")
-            return Response(response, self.UNPROCESSABLE_CODE)
+            return Response(response, status.HTTP_422_UNPROCESSABLE_ENTITY)
         # Пытаемся запустить задачу
         if task_action == ACTION_START:
             run_scan_task.delay(current_task.id)
@@ -104,4 +100,4 @@ class TaskViewSet(viewsets.ModelViewSet):
             return Response(response)
         # Отдаем 400 код, если что-то пошло не так
         response["message"] = "Bad request"
-        return Response(response, self.BAD_REQUEST_CODE)
+        return Response(response, status.HTTP_400_BAD_REQUEST)
