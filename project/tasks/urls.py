@@ -15,5 +15,5 @@ detail_paths = TaskViewSet.as_view({
 
 urlpatterns = [
     path("tasks/", list_paths, name="task-list"),
-    path("task/<int:pk>/", detail_paths, name="task-detail")
+    path("tasks/<int:pk>/", detail_paths, name="task-detail")
 ]
