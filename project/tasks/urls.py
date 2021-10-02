@@ -8,7 +8,10 @@ router.register('tasks', TaskViewSet)
 
 urlpatterns = [
     path("tasks/<pk>/",
-         TaskViewSet.as_view({"get": "retrieve", "post": "change_task_state"}),
+         TaskViewSet.as_view({
+             "get": "retrieve",
+             "post": "change_task_state",
+             "delete": "destroy"}),
          name="get-task"),
 ]
 
