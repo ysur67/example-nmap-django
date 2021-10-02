@@ -13,7 +13,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
 
     UNPROCESSABLE_CODE = 422
-    BAD_REQQUEST_CODE = 400
+    BAD_REQUEST_CODE = 400
 
     def list(self, request: Request, *args, **kwargs):
         request_params = request.query_params.copy()
@@ -104,4 +104,4 @@ class TaskViewSet(viewsets.ModelViewSet):
             return Response(response)
         # Отдаем 400 код, если что-то пошло не так
         response["message"] = "Bad request"
-        return Response(response, self.BAD_REQQUEST_CODE)
+        return Response(response, self.BAD_REQUEST_CODE)
