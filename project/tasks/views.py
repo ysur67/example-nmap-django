@@ -5,12 +5,14 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from tasks.tasks import run_scan_task, stop_task
 from rest_framework.decorators import action
-from tasks.utils.tools import get_int_value
+from tasks.utils.tools import get_int_value, start_param, length_param
+from drf_yasg.utils import swagger_auto_schema
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskListSerializer
     queryset = Task.objects.all()
 
+    @swagger_auto_schema(manual_parameters=[start_param, length_param])
     def list(self, request: Request, *args, **kwargs):
         request_params = request.query_params.copy()
         range_start = get_int_value(request_params, "start")
