@@ -2,7 +2,6 @@ from project.celery import app
 from tasks.models import Task
 from tasks.utils import ScanService, NmapService
 from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
-import time
 
 
 @app.task(bind=True, base=AbortableTask)
