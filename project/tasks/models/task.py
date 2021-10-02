@@ -22,6 +22,7 @@ class Task(models.Model):
     status = models.CharField(verbose_name="Текущий статус задачи",
                               choices=Status.choices, max_length=100,
                               default=Status.CREATED, blank=True)
+    celery_id = models.CharField(max_length=200, default="")
 
     @classmethod
     def get_object_by_id(cls, id_: int):
@@ -35,6 +36,13 @@ class Task(models.Model):
             return cls.objects.get(id=id_)
         except cls.DoesNotExist:
             return None
+        
+    @classmethod
+    def get_object_by_celery_id(cls, id_: int):
+        try:
+            return cls.objects.get(celery_id=id_)
+        except cls.DoesNotExist:
+            return None
 
     @property
     def is_running(self) -> bool:
@@ -42,7 +50,7 @@ class Task(models.Model):
 
     @property
     def is_finished(self) -> bool:
-        return self.status == Status.FINISHED or self.status == Status.STOPPED
+        return self.status == Status.FINISHED
 
     @property
     def result_is_empty(self) -> bool:
@@ -59,6 +67,11 @@ class Task(models.Model):
     def mark_as_completed(self):
         """Пометить задачу. как успешно выполненную."""
         self.status = Status.FINISHED
+        self.save()
+
+    def mark_as_stopped(self):
+        """Пометить задачу, как остановленную."""
+        self.status = Status.STOPPED
         self.save()
 
     def set_result(self, new):
@@ -86,4 +99,8 @@ class Task(models.Model):
         if not isinstance(new, str):
             raise TypeError("ip_range should be of type string")
         self.ip_range = new
+        self.save()
+
+    def set_celery_id(self, new: str):
+        self.celery_id = new
         self.save()

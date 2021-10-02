@@ -2,10 +2,11 @@ from project.celery import app
 from tasks.models import Task
 from tasks.utils import ScanService, NmapService
 from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
+import time
 
 
 @app.task(bind=True, base=AbortableTask)
-def run_scan_task(self, task_id: int):
+def run_scan_task(self: AbortableTask, task_id: int):
     """Запустить задачу сканирования.
 
     Args:
@@ -20,6 +21,8 @@ def run_scan_task(self, task_id: int):
     if current_task.is_running or current_task.is_finished:
         raise ValueError(f"Task {task_id} is started or finished already")
     current_task.mark_as_started()
+    celery_task_id = self.request.id
+    current_task.set_celery_id(celery_task_id)
     scan_service: ScanService = NmapService(current_task.ip_range)
     # Запускаем задачу с флагом -A
     # aggressive mode
@@ -37,4 +40,6 @@ def stop_task(abortable_task_id):
     abortable_task = AbortableAsyncResult(abortable_task_id)
     if abortable_task.is_aborted():
         return
+    current_task = Task.get_object_by_celery_id(abortable_task_id)
+    current_task.mark_as_stopped()
     abortable_task.abort()

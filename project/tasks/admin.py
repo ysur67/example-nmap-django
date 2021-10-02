@@ -5,3 +5,4 @@ from tasks.models import Task
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
     readonly_fields = ("result", "status", )
+    exclude = ("celery_id", )
