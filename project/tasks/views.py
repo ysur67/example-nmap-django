@@ -1,5 +1,5 @@
 from tasks.models import Task
-from tasks.serializers import TaskListSerializer, TaskDetailSerializer
+from tasks.serializers import TaskListSerializer, TaskDetailSerializer, TaskRunSerializer
 from rest_framework import viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -41,69 +41,41 @@ class TaskViewSet(viewsets.ModelViewSet):
         return response
 
     def update(self, request: Request, *args, **kwargs):
-        current_task: Task = self.get_object()
         response = {
             "message": str()
         }
-        if current_task.is_running:
-            response["message"] = ("At the moment task "
-                                   "is running and cannot be changed")
-            return Response(response, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-        if current_task.is_finished:
-            response["message"] = ("Task has already been finished "
-                                   "and cannot be changed")
-            return Response(response, status.HTTP_422_UNPROCESSABLE_ENTITY)
-        request_data = request.data.copy()
-        new_ip_range = request_data.get("ip_range", current_task.ip_range)
-        new_name = request_data.get("name", current_task.name)
-        current_task.set_name(new_name)
-        current_task.set_ip_range(new_ip_range)
+        current_task: Task = self.get_object()
+        serializer: TaskListSerializer = self.get_serializer(data=request.data)
+        serializer.instance = current_task
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         response["message"] = "The task has been successfully updated"
         return Response(response)
 
     @action(methods=["post",], detail=True)
     def change_task_state(self, request: Request, *args, **kwargs):
-        current_task: Task = self.get_object()
-        ACTION_START = "start"
-        ACTION_STOP = "stop"
-        task_action = request.data.get("action", None)
         response = {
             "message": str()
         }
-        # Выходим, если получен неправильный параметр
-        if task_action not in (ACTION_START, ACTION_STOP):
-            response["message"] = "Action is unknown"
-            return Response(response, status.HTTP_422_UNPROCESSABLE_ENTITY)
-        # Выходим, если задача уже выполнена
-        if current_task.is_finished:
-            response["message"] = "The task has already been finished"
-            return Response(response, status.HTTP_422_UNPROCESSABLE_ENTITY)
-        # Если задача запущена, пытаемся ее остановить
-        if current_task.is_running:
-            # Если задачу пытаются повторно запустить - выходим
-            if task_action == ACTION_START:
-                response["message"] = ("At the moment task is running "
-                                   "and cannot be started again")
-                return Response(response, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        current_task: Task = self.get_object()
+        serializer: TaskRunSerializer = self.get_serializer(data=request.data)
+        serializer.instance = current_task
+        serializer.is_valid(raise_exception=True)
+        task_action = serializer.data.get("action", None)
+        if current_task.is_running and task_action == TaskRunSerializer.STOP_ACTION:
             stop_task.delay(current_task.celery_id)
             response["message"] = "The task has been successfully stopped"
             return Response(response)
-        # На этом этапе задача не может быть запущена
-        # Выходим, если задача уже остановлена и ее пытаются запустить
-        if task_action == ACTION_STOP:
-            response["message"] = ("The task has been already stopped "
-                                   "and cannot be stopped again")
-            return Response(response, status.HTTP_422_UNPROCESSABLE_ENTITY)
-        # Пытаемся запустить задачу
-        if task_action == ACTION_START:
+        if not current_task.is_running and task_action == TaskRunSerializer.START_ACTION:
             run_scan_task.delay(current_task.id)
             response["message"] = "The task has been successfully started"
             return Response(response)
-        # Отдаем 400 код, если что-то пошло не так
         response["message"] = "Bad request"
         return Response(response, status.HTTP_400_BAD_REQUEST)
-    
+
     def get_serializer_class(self):
         if self.action == "retrieve":
             return TaskDetailSerializer
+        if self.action == "change_task_state":
+            return TaskRunSerializer
         return super().get_serializer_class()
