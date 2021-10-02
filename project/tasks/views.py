@@ -3,7 +3,7 @@ from tasks.serializers import TaskSerializer
 from rest_framework import viewsets
 from rest_framework.request import Request
 from rest_framework.response import Response
-from tasks.tasks import run_scan_task
+from tasks.tasks import run_scan_task, stop_task
 from rest_framework.decorators import action
 
 
@@ -12,6 +12,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
 
     UNPROCESSABLE_CODE = 422
+    BAD_REQQUEST_CODE = 400
 
     def list(self, request: Request, *args, **kwargs):
         request_params = request.query_params.copy()
@@ -71,14 +72,38 @@ class TaskViewSet(viewsets.ModelViewSet):
         response = {
             "message": str()
         }
-        if current_task.is_running and task_action == ACTION_START:
-            response["message"] = ("At the moment task is running "
-                                   "and cannot be started again")
+        # Выходим, если получен неправильный параметр
+        if task_action not in (ACTION_START, ACTION_STOP):
+            response["message"] = "Action not known"
             return Response(response, self.UNPROCESSABLE_CODE)
+        # Выходим, если задача уже выполнена
+        if current_task.is_finished:
+            response["message"] = "The task has already been finished"
+            return Response(response, self.UNPROCESSABLE_CODE)
+        # Если задача запущена, пытаемся ее остановить
+        if current_task.is_running:
+            # Если задачу пытаются повторно запустить - выходим
+            if task_action == ACTION_START:
+                response["message"] = ("At the moment task is running "
+                                   "and cannot be started again")
+                return Response(response, self.UNPROCESSABLE_CODE)
+            stop_task.delay(current_task.celery_id)
+            response["message"] = "The task has been successfully stopped"
+            return Response(response)
+        # На этом этапе задача не может быть запущена
+        # Выходим, если задача уже остановлена и ее пытаются запустить
+        if task_action == ACTION_STOP:
+            response["message"] = ("The task has been already stopped "
+                                   "and cannot be stopped again")
+            return Response(response, self.UNPROCESSABLE_CODE)
+        # Пытаемся запустить задачу
         if task_action == ACTION_START:
             run_scan_task.delay(current_task.id)
             response["message"] = "The task has been successfully started"
             return Response(response)
+        # Отдаем 400 код, если что-то пошло не так
+        response["message"] = "Bad request"
+        return Response(response, self.BAD_REQQUEST_CODE)
 
     def get_int_value(self, dict_, key):
         DEFAULT_VALUE = 0
