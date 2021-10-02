@@ -47,3 +47,15 @@ class TaskRunSerializer(TaskListSerializer):
             raise serializers.ValidationError(("The task has been already stopped "
                                                "and cannot be stopped again"))
         return attrs
+
+
+class TaskCreateSerializer(serializers.ModelSerializer):
+    autostart = serializers.BooleanField(default=False)
+
+    class Meta:
+        model = Task
+        fields = ("id", "name", "ip_range", "autostart", )
+
+    def create(self, validated_data: dict):
+        validated_data.pop("autostart")
+        return super().create(validated_data)

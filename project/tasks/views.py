@@ -1,5 +1,4 @@
 from tasks.models import Task
-from tasks.serializers import TaskListSerializer, TaskDetailSerializer, TaskRunSerializer
 from rest_framework import viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -7,6 +6,9 @@ from tasks.tasks import run_scan_task, stop_task
 from rest_framework.decorators import action
 from tasks.utils.tools import get_int_value, start_param, length_param
 from drf_yasg.utils import swagger_auto_schema
+from tasks.serializers import (TaskListSerializer, TaskDetailSerializer,
+                               TaskRunSerializer, TaskCreateSerializer)
+
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskListSerializer
@@ -29,15 +31,15 @@ class TaskViewSet(viewsets.ModelViewSet):
             qs = qs[:range_size]
         return Response(self.get_serializer(qs, many=True).data)
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request: Request, *args, **kwargs):
         """Создать задачу на сканирование."""
         response = super().create(request, *args, **kwargs)
         if response.status_code != status.HTTP_201_CREATED:
             return response
-        autostart = self.request.data.get("autostart", False)
+        serializer: TaskCreateSerializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        autostart = serializer.data.get("autostart", False)
         if not autostart:
-            return response
-        if not isinstance(autostart, bool):
             return response
         current_task_id = get_int_value(response.data, "id")
         run_scan_task.delay(current_task_id)
@@ -90,4 +92,6 @@ class TaskViewSet(viewsets.ModelViewSet):
             return TaskDetailSerializer
         if self.action == "change_task_state":
             return TaskRunSerializer
+        if self.action == "create":
+            return TaskCreateSerializer
         return super().get_serializer_class()
