@@ -4,6 +4,8 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
 from django.views.generic import RedirectView
+from rest_framework_simplejwt.views import (TokenObtainPairView,
+                                            TokenRefreshView)
 
 
 schema_view = get_schema_view(
@@ -22,4 +24,6 @@ urlpatterns = [
    path("swagger/", schema_view.with_ui("swagger"), name="schema-swagger-ui"),
    path('admin/', admin.site.urls),
    path('api/v1/', include(("tasks.urls", "tasks"))),
+   path('api/token/', TokenObtainPairView.as_view(), name='token-obtain-pair'),
+   path('api/token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
 ]

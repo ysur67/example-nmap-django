@@ -1,5 +1,5 @@
 from tasks.models import Task
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.request import Request
 from rest_framework.response import Response
 from tasks.tasks import run_scan_task, stop_task
@@ -13,6 +13,7 @@ from tasks.serializers import (TaskListSerializer, TaskDetailSerializer,
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskListSerializer
     queryset = Task.objects.all()
+    permission_classes = [permissions.IsAuthenticated, ]
 
     @swagger_auto_schema(manual_parameters=[start_param, length_param])
     def list(self, request: Request, *args, **kwargs):
