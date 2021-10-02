@@ -1,5 +1,5 @@
 from tasks.models import Task
-from tasks.serializers import TaskSerializer
+from tasks.serializers import TaskListSerializer, TaskDetailSerializer
 from rest_framework import viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -8,20 +8,21 @@ from rest_framework.decorators import action
 from tasks.utils.tools import get_int_value
 
 class TaskViewSet(viewsets.ModelViewSet):
-    serializer_class = TaskSerializer
+    serializer_class = TaskListSerializer
     queryset = Task.objects.all()
 
     def list(self, request: Request, *args, **kwargs):
         request_params = request.query_params.copy()
         range_start = get_int_value(request_params, "start")
         MIN_START_RANGE = 0
+        RANGE_SIZE_DEFAULT_VALUE = 0
         if range_start < MIN_START_RANGE:
             range_start = MIN_START_RANGE
         range_size = get_int_value(request_params, "length")
-        qs = self.get_queryset()
+        qs = self.get_queryset().order_by("id")
         if range_start > MIN_START_RANGE:
-            qs = qs[range_start - 1:]
-        if range_size != 0:
+            qs = qs.filter(id__gte=range_start)
+        if range_size != RANGE_SIZE_DEFAULT_VALUE:
             qs = qs[:range_size]
         return Response(self.get_serializer(qs, many=True).data)
 
@@ -101,3 +102,8 @@ class TaskViewSet(viewsets.ModelViewSet):
         # Отдаем 400 код, если что-то пошло не так
         response["message"] = "Bad request"
         return Response(response, status.HTTP_400_BAD_REQUEST)
+    
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return TaskDetailSerializer
+        return super().get_serializer_class()
