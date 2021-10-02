@@ -72,7 +72,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         }
         # Выходим, если получен неправильный параметр
         if task_action not in (ACTION_START, ACTION_STOP):
-            response["message"] = "Action not known"
+            response["message"] = "Action is unknown"
             return Response(response, status.HTTP_422_UNPROCESSABLE_ENTITY)
         # Выходим, если задача уже выполнена
         if current_task.is_finished:
