@@ -5,4 +5,11 @@ from rest_framework import routers
 
 router = routers.SimpleRouter()
 router.register('tasks', TaskViewSet)
-urlpatterns = router.urls
+
+urlpatterns = [
+    path("tasks/<pk>/",
+         TaskViewSet.as_view({"get": "retrieve", "post": "change_task_state"}),
+         name="get-task"),
+]
+
+urlpatterns += router.urls
