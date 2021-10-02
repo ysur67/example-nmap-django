@@ -42,10 +42,10 @@ def stop_task(abortable_task_id):
     if abortable_task.is_aborted():
         return
     current_task = Task.get_object_by_celery_id(abortable_task_id)
+    abortable_task.abort()
     if current_task is None:
         return
     current_task.mark_as_stopped()
-    abortable_task.abort()
 
 
 @receiver(pre_delete, sender=Task)
