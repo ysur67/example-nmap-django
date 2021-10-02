@@ -29,7 +29,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         # Создать объект, как обычно и только потом запускаем задачу
         response = super().create(request, *args, **kwargs)
-        if response.status_code != 201:
+        if response.status_code != status.HTTP_201_CREATED:
             return response
         autostart = self.request.data.get("autostart", False)
         if not autostart:
