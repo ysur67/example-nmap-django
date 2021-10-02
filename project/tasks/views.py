@@ -54,8 +54,8 @@ class TaskViewSet(viewsets.ModelViewSet):
                                    "and cannot be changed")
             return Response(response, status.HTTP_422_UNPROCESSABLE_ENTITY)
         request_data = request.data.copy()
-        new_ip_range = request_data.get("ip_range", None)
-        new_name = request_data.get("name", None)
+        new_ip_range = request_data.get("ip_range", current_task.ip_range)
+        new_name = request_data.get("name", current_task.name)
         current_task.set_name(new_name)
         current_task.set_ip_range(new_ip_range)
         response["message"] = "The task has been successfully updated"

@@ -11,6 +11,7 @@ urlpatterns = [
          TaskViewSet.as_view({
              "get": "retrieve",
              "post": "change_task_state",
+             "put": "update",
              "delete": "destroy"}),
          name="get-task"),
 ]
