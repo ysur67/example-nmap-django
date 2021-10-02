@@ -1,3 +1,5 @@
+"""Кастомные поля для drf_yasg"""
+
 from drf_yasg import openapi
 
 start_param = openapi.Parameter('Начало списка, включительно', in_=openapi.IN_QUERY,

@@ -36,9 +36,18 @@ class Task(models.Model):
             return cls.objects.get(id=id_)
         except cls.DoesNotExist:
             return None
-        
+
     @classmethod
-    def get_object_by_celery_id(cls, id_: int):
+    def get_object_by_celery_id(cls, id_):
+        """Получить задачу по ее идентификатору,
+        созданному Celery
+
+        Если идентификатор не существует,
+        то будет возвращен `None`
+
+        Args:
+            id_: Идентификатор, созданный Celery
+        """
         try:
             return cls.objects.get(celery_id=id_)
         except cls.DoesNotExist:
@@ -91,18 +100,8 @@ class Task(models.Model):
             ValueError: Задача уже имеет какой-то результат выполнения
         """
         if not self.result_is_empty:
-            raise ValueError(f"Task {self.id} has already been started")
+            raise ValueError(f"Task {self.id} already has result")
         self.result = keys_to_strings(new)
-        self.save()
-
-    def set_name(self, new: str):
-        self.name = str(new)
-        self.save()
-
-    def set_ip_range(self, new: str):
-        if not isinstance(new, str):
-            raise TypeError("ip_range should be of type string")
-        self.ip_range = new
         self.save()
 
     def set_celery_id(self, new: str):

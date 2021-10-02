@@ -14,6 +14,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(manual_parameters=[start_param, length_param])
     def list(self, request: Request, *args, **kwargs):
+        """Получить список задач."""
         request_params = request.query_params.copy()
         range_start = get_int_value(request_params, "start")
         MIN_START_RANGE = 0
@@ -29,7 +30,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         return Response(self.get_serializer(qs, many=True).data)
 
     def create(self, request, *args, **kwargs):
-        # Создать объект, как обычно и только потом запускаем задачу
+        """Создать задачу на сканирование."""
         response = super().create(request, *args, **kwargs)
         if response.status_code != status.HTTP_201_CREATED:
             return response
@@ -43,6 +44,11 @@ class TaskViewSet(viewsets.ModelViewSet):
         return response
 
     def update(self, request: Request, *args, **kwargs):
+        """Обновить имя и диапазон адресов, если это возможно.
+
+        Обновить задачу невозможно, если она уже выполнена
+        или запущена
+        """
         response = {
             "message": str()
         }
@@ -56,6 +62,10 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     @action(methods=["post",], detail=True)
     def change_task_state(self, request: Request, *args, **kwargs):
+        """Запустить или остановить существующую задачу.
+
+        Задача не может быть запущена дважды, также как и остановлена
+        """
         response = {
             "message": str()
         }
