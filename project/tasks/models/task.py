@@ -51,6 +51,10 @@ class Task(models.Model):
     @property
     def is_finished(self) -> bool:
         return self.status == Status.FINISHED
+    
+    @property
+    def is_stopped(self) -> bool:
+        return self.status == Status.STOPPED or self.status == Status.CREATED
 
     @property
     def result_is_empty(self) -> bool:
