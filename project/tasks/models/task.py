@@ -1,5 +1,4 @@
 from djongo import models
-from .result import TaskResult
 from tasks.utils import keys_to_strings
 
 
@@ -68,6 +67,10 @@ class Task(models.Model):
     @property
     def result_is_empty(self) -> bool:
         return self.result is None or self.result == "" or self.result == {}
+
+    @property
+    def has_celery_id(self) -> bool:
+        return self.celery_id != "" or self.celery_id is not None
 
     def __str__(self) -> str:
         return self.name

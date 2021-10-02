@@ -2,6 +2,8 @@ from project.celery import app
 from tasks.models import Task
 from tasks.utils import ScanService, NmapService
 from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 
 @app.task(bind=True, base=AbortableTask)
@@ -40,5 +42,14 @@ def stop_task(abortable_task_id):
     if abortable_task.is_aborted():
         return
     current_task = Task.get_object_by_celery_id(abortable_task_id)
+    if current_task is None:
+        return
     current_task.mark_as_stopped()
     abortable_task.abort()
+
+
+@receiver(pre_delete, sender=Task)
+def pre_delete_task_receiver(sender, instance: Task, **kwargs):
+    if not instance.has_celery_id:
+        return
+    stop_task.delay(instance.celery_id)
