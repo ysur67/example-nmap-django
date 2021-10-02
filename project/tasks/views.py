@@ -28,7 +28,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         qs = self.get_queryset().order_by("id")
         if range_start > MIN_START_RANGE:
             qs = qs.filter(id__gte=range_start)
-        if range_size != RANGE_SIZE_DEFAULT_VALUE:
+        if range_size > RANGE_SIZE_DEFAULT_VALUE:
             qs = qs[:range_size]
         return Response(self.get_serializer(qs, many=True).data)
 
