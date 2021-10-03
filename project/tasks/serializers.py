@@ -62,3 +62,7 @@ class TaskCreateSerializer(serializers.ModelSerializer):
     def get_autostart_value(self, instance):
         request = self.context.get("request", None)
         return request.data.get("autostart", False)
+
+    def create(self, validated_data):
+        validated_data.pop("autostart")
+        return super().create(validated_data)
