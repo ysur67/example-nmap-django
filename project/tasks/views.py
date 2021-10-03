@@ -6,6 +6,8 @@ from tasks.tasks import run_scan_task, stop_task
 from rest_framework.decorators import action
 from tasks.utils.tools import get_int_value, start_param, length_param
 from drf_yasg.utils import swagger_auto_schema
+from django_filters.rest_framework import DjangoFilterBackend
+from tasks.filters import TaskFilter
 from tasks.serializers import (TaskListSerializer, TaskDetailSerializer,
                                TaskRunSerializer, TaskCreateSerializer)
 
@@ -14,23 +16,9 @@ class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskListSerializer
     queryset = Task.objects.all()
     permission_classes = [permissions.IsAuthenticated, ]
+    filter_backends = [DjangoFilterBackend, ]
+    filterset_class = TaskFilter
 
-    @swagger_auto_schema(manual_parameters=[start_param, length_param])
-    def list(self, request: Request, *args, **kwargs):
-        """Получить список задач."""
-        request_params = request.query_params.copy()
-        range_start = get_int_value(request_params, "start")
-        MIN_START_RANGE = 0
-        RANGE_SIZE_DEFAULT_VALUE = 0
-        if range_start < MIN_START_RANGE:
-            range_start = MIN_START_RANGE
-        range_size = get_int_value(request_params, "length")
-        qs = self.get_queryset().order_by("id")
-        if range_start > MIN_START_RANGE:
-            qs = qs.filter(id__gte=range_start)
-        if range_size > RANGE_SIZE_DEFAULT_VALUE:
-            qs = qs[:range_size]
-        return Response(self.get_serializer(qs, many=True).data)
 
     def create(self, request: Request, *args, **kwargs):
         """Создать задачу на сканирование."""
