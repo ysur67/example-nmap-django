@@ -18,15 +18,12 @@ class TaskViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = TaskFilter
 
-
     def create(self, request: Request, *args, **kwargs):
         """Создать задачу на сканирование."""
         response = super().create(request, *args, **kwargs)
         if response.status_code != status.HTTP_201_CREATED:
             return response
-        serializer: TaskCreateSerializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        autostart = serializer.data.get("autostart", False)
+        autostart = response.data.get("autostart", False)
         if not autostart:
             return response
         current_task_id = get_int_value(response.data, "id")

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from tasks.models import Task
+from tasks.utils import ReadWriteSerializerMethodField
 
 
 class TaskListSerializer(serializers.ModelSerializer):
@@ -52,12 +53,12 @@ class TaskRunSerializer(serializers.Serializer):
 
 
 class TaskCreateSerializer(serializers.ModelSerializer):
-    autostart = serializers.BooleanField(default=False)
+    autostart = ReadWriteSerializerMethodField("get_autostart_value")
 
     class Meta:
         model = Task
         fields = ("id", "name", "ip_range", "autostart", )
 
-    def create(self, validated_data: dict):
-        validated_data.pop("autostart")
-        return super().create(validated_data)
+    def get_autostart_value(self, instance):
+        request = self.context.get("request", None)
+        return request.data.get("autostart", False)
