@@ -14,7 +14,6 @@ class TaskBaseSerializer(serializers.ModelSerializer):
         return self.instance and (self.instance.is_running or self.instance.is_finished)
 
 class TaskListSerializer(TaskBaseSerializer):
-
     class Meta(TaskBaseSerializer.Meta):
         pass
 
@@ -60,10 +59,16 @@ class TaskCreateSerializer(TaskBaseSerializer):
     class Meta(TaskBaseSerializer.Meta):
         fields = ("id", "name", "ip_range", "autostart", )
 
-    def get_autostart_value(self, instance):
+    def get_autostart_value(self, instance) -> bool:
         request = self.context.get("request", None)
         return request.data.get("autostart", False)
 
     def create(self, validated_data):
         validated_data.pop("autostart")
         return super().create(validated_data)
+
+    def validate_autostart(self, attrs):
+        value = attrs.get("autostart", None)
+        if not isinstance(value, bool):
+            raise serializers.ValidationError("Use boolean value")
+        return attrs
