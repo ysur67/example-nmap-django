@@ -4,8 +4,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from tasks.tasks import run_scan_task, stop_task
 from rest_framework.decorators import action
-from tasks.utils.tools import get_int_value, start_param, length_param
-from drf_yasg.utils import swagger_auto_schema
+from tasks.utils.tools import get_int_value
 from django_filters.rest_framework import DjangoFilterBackend
 from tasks.filters import TaskFilter
 from tasks.serializers import (TaskListSerializer, TaskDetailSerializer,
