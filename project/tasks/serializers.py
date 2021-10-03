@@ -3,12 +3,20 @@ from tasks.models import Task
 from tasks.utils import ReadWriteSerializerMethodField
 
 
-class TaskListSerializer(serializers.ModelSerializer):
-
+class TaskBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ("id", "name", "status", "ip_range")
+        fields = ("id", "name", "status", "ip_range", )
         read_only_fields = ("status", )
+
+    @property
+    def task_is_immutable(self) -> bool:
+        return self.instance and (self.instance.is_running or self.instance.is_finished)
+
+class TaskListSerializer(TaskBaseSerializer):
+
+    class Meta(TaskBaseSerializer.Meta):
+        pass
 
     def validate(self, attrs):
         if self.task_is_immutable:
@@ -16,18 +24,12 @@ class TaskListSerializer(serializers.ModelSerializer):
                                                "is running or finished and cannot be changed"))
         return attrs
 
-    @property
-    def task_is_immutable(self) -> bool:
-        return self.instance and (self.instance.is_running or self.instance.is_finished)
 
-
-class TaskDetailSerializer(serializers.ModelSerializer):
+class TaskDetailSerializer(TaskBaseSerializer):
     result = serializers.JSONField(required=False)
 
-    class Meta:
-        model = Task
+    class Meta(TaskBaseSerializer.Meta):
         fields = ("id", "name", "status", "ip_range", "result")
-        read_only_fields = ("status", )
 
 
 class TaskRunSerializer(serializers.Serializer):
@@ -52,11 +54,10 @@ class TaskRunSerializer(serializers.Serializer):
         return attrs
 
 
-class TaskCreateSerializer(serializers.ModelSerializer):
+class TaskCreateSerializer(TaskBaseSerializer):
     autostart = ReadWriteSerializerMethodField("get_autostart_value")
 
-    class Meta:
-        model = Task
+    class Meta(TaskBaseSerializer.Meta):
         fields = ("id", "name", "ip_range", "autostart", )
 
     def get_autostart_value(self, instance):
