@@ -43,3 +43,4 @@ python manage.py migrate
 ```
 python manage.py runserver
 ```
+После успешной установки и запуска вы можете перейти к [использованию сервиса](docs/USAGE.md)
