@@ -25,18 +25,16 @@ class TaskDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ("status", )
 
 
-class TaskRunSerializer(TaskListSerializer):
+class TaskRunSerializer(serializers.Serializer):
     START_ACTION = "start"
     STOP_ACTION = "stop"
 
     action = serializers.ChoiceField(choices=(START_ACTION, STOP_ACTION))
 
-    class Meta:
-        model = Task
-        fields = ("action", )
-
     def validate(self, attrs):
-        current_task: Task = self.instance
+        current_task = self.context.get("task", None)
+        if current_task is None:
+            raise ValueError("There is no current task in context")
         action = attrs["action"]
         if current_task.is_finished:
             raise serializers.ValidationError("The task has already been finished")

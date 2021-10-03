@@ -73,8 +73,11 @@ class TaskViewSet(viewsets.ModelViewSet):
             "message": str()
         }
         current_task: Task = self.get_object()
-        serializer: TaskRunSerializer = self.get_serializer(data=request.data)
-        serializer.instance = current_task
+        serializer_context = {
+            "task": current_task
+        }
+        serializer: TaskRunSerializer = self.get_serializer(data=request.data,
+                                                            context=serializer_context)
         serializer.is_valid(raise_exception=True)
         task_action = serializer.data.get("action", None)
         if current_task.is_running and task_action == TaskRunSerializer.STOP_ACTION:
