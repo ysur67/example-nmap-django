@@ -10,10 +10,14 @@ class TaskListSerializer(serializers.ModelSerializer):
         read_only_fields = ("status", )
 
     def validate(self, attrs):
-        if self.instance.is_running or self.instance.is_finished:
+        if self.task_is_immutable:
             raise serializers.ValidationError(("At the moment task "
                                                "is running or finished and cannot be changed"))
         return attrs
+
+    @property
+    def task_is_immutable(self) -> bool:
+        return self.instance and (self.instance.is_running or self.instance.is_finished)
 
 
 class TaskDetailSerializer(serializers.ModelSerializer):
