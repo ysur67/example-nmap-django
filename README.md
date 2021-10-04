@@ -3,7 +3,6 @@
 Написать сервис на Django + Celery + MongoDB + Redis + REST API, выполняющий сканирование локальной сети с помощью nmap. Результат должен быть преобразован в json и сохранен в БД.
 
 # Установка и запуск
-На данной ветке не использован докер
 ## Установка основых компонентов
 Скопируйте репозиторий
 
@@ -23,6 +22,8 @@ pip install -r requirements.txt
 - Mongo https://docs.mongodb.com/manual/administration/install-community/
 - Redis https://redis.io/topics/quickstart
 - Nmap https://nmap.org/download.html
+
+Создайте базу данных Mongo
 
 Перейдите в основную папку проекта, та директория, что содержит файл `manage.py`
 
