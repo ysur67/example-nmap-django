@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from tasks.models import Task
-from tasks.utils import ReadWriteSerializerMethodField
+from tasks.utils import ReadWriteSerializerMethodField, is_ip_range
 
 
 class TaskBaseSerializer(serializers.ModelSerializer):
@@ -54,7 +54,8 @@ class TaskRunSerializer(serializers.Serializer):
 
 
 class TaskCreateSerializer(TaskBaseSerializer):
-    autostart = ReadWriteSerializerMethodField("get_autostart_value")
+    autostart = ReadWriteSerializerMethodField("get_autostart_value",
+                                               required=False)
 
     class Meta(TaskBaseSerializer.Meta):
         fields = ("id", "name", "ip_range", "autostart", )
@@ -64,7 +65,8 @@ class TaskCreateSerializer(TaskBaseSerializer):
         return request.data.get("autostart", False)
 
     def create(self, validated_data):
-        validated_data.pop("autostart")
+        if "autostart" in validated_data.keys():
+            validated_data.pop("autostart")
         return super().create(validated_data)
 
     def validate_autostart(self, attrs):
@@ -72,3 +74,8 @@ class TaskCreateSerializer(TaskBaseSerializer):
         if not isinstance(value, bool):
             raise serializers.ValidationError("Use boolean value")
         return attrs
+
+    def validate_ip_range(self, value):
+        if not is_ip_range(value):
+            raise serializers.ValidationError("Value is not a valid address range")
+        return value
