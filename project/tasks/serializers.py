@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from tasks.models import Task
-from tasks.utils import ReadWriteSerializerMethodField, is_ip_range
+from tasks.utils import ReadWriteSerializerMethodField, is_valid_ip
 
 
 class TaskBaseSerializer(serializers.ModelSerializer):
@@ -12,6 +12,11 @@ class TaskBaseSerializer(serializers.ModelSerializer):
     @property
     def task_is_immutable(self) -> bool:
         return self.instance and (self.instance.is_running or self.instance.is_finished)
+
+    def validate_ip_range(self, value):
+        if not is_valid_ip(value):
+            raise serializers.ValidationError("Value is not a valid address range")
+        return value
 
 class TaskListSerializer(TaskBaseSerializer):
     class Meta(TaskBaseSerializer.Meta):
@@ -74,8 +79,3 @@ class TaskCreateSerializer(TaskBaseSerializer):
         if not isinstance(value, bool):
             raise serializers.ValidationError("Use boolean value")
         return attrs
-
-    def validate_ip_range(self, value):
-        if not is_ip_range(value):
-            raise serializers.ValidationError("Value is not a valid address range")
-        return value
