@@ -44,4 +44,8 @@ python manage.py migrate
 ```
 python manage.py runserver
 ```
+Запустите Celery Worker
+```
+celery -A proj worker -l INFO
+```
 После успешной установки и запуска вы можете перейти к [использованию сервиса](docs/USAGE.md)
