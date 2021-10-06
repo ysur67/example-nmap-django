@@ -14,7 +14,7 @@ from tasks.serializers import (TaskListSerializer, TaskDetailSerializer,
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskListSerializer
     queryset = Task.objects.all()
-    # permission_classes = [permissions.IsAuthenticated, ]
+    permission_classes = [permissions.IsAuthenticated, ]
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = TaskFilter
 
