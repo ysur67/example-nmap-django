@@ -6,46 +6,17 @@
 ## Установка основых компонентов
 Скопируйте репозиторий
 
-Установите Python версии 3.9.7
+Установите Docker
+https://docs.docker.com/engine/install/
 
-https://www.python.org/downloads/
-
-Создайте виртуальное окружение и активируйте его
-
-https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/26/python-virtual-env/
-
-Перейдите в директорию проекта и установите необходимые пакеты
-```
-pip install -r requirements.txt
-```
-Установите и запустите MongoDB, Redis, Nmap
-- Mongo https://docs.mongodb.com/manual/administration/install-community/
-- Redis https://redis.io/topics/quickstart
-- Nmap https://nmap.org/download.html
-
-Создайте базу данных Mongo
+Создайте файл docker-compose.yml по шаблону из docker-compose.template.yml
 
 Перейдите в основную папку проекта, та директория, что содержит файл `manage.py`
 
 В данной директории создайте файл .env, скопируйте содержимое из .env и наполните его необходимыми значениями
 
-## Запуск сервиса
-После установки всех пакетов и настрйоки проекта
-
-Создайте суперпользователя
+Запустите Docker
 ```
-python manage.py createsuperuser
-```
-Запустите миграции
-```
-python manage.py migrate
-```
-Запустите встроенный сервер Django
-```
-python manage.py runserver
-```
-Запустите Celery Worker
-```
-celery -A proj worker -l INFO
+docker-compose up --build
 ```
 После успешной установки и запуска вы можете перейти к [использованию сервиса](docs/USAGE.md)

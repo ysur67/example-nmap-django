@@ -1,0 +1,45 @@
+version: "3.8"
+services:
+  db:
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: mongoadmin
+      MONGO_INITDB_DATABASE: django_mongo
+    ports:
+      - 27017:27017
+    networks:
+      - backend
+
+  redis:
+    image: "redis:alpine"
+
+  app:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/code
+    depends_on:
+      - db
+      - redis
+    networks:
+      - backend
+
+  celery:
+    build: .
+    command: celery -A project worker -l info
+    volumes:
+      - .:/code
+    depends_on:
+      - redis
+      - db
+      - app
+
+networks:
+  backend:
+
+volumes:
+  db-data:
