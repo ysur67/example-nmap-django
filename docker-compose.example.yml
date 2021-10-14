@@ -30,12 +30,13 @@ services:
 
   celery:
     build: .
-    command: celery -A project/project worker -l info
+    command: celery -A project worker -l info
     volumes:
       - .:/code
     depends_on:
-      - db
       - redis
+      - db
+      - app
 
 networks:
   backend:

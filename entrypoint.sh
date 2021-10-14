@@ -1,6 +1,7 @@
 #!/bin/sh
 
-python /code/project/manage.py collectstatic --no-input
-python /code/project/manage.py migrate --no-input
+cd project
+python manage.py collectstatic --no-input
+python manage.py migrate --no-input
 
 exec "$@"
